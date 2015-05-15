@@ -1,6 +1,6 @@
 // CONSTANTS
 var port = 6379,
-    hostname = "localhost",
+    hostname = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
