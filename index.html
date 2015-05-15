@@ -33,12 +33,11 @@
         $('#m').val('');
         return false;
       });
-      socket.on('chat message', function(msg){
+      socket.on('chat.message', function(msg){
         $('#messages').append($('<li>').text(msg.userId + ': ' + msg.msg));
       });
-      socket.on('user connected', function(msg){
-        msg = 'user connected';
-        $('#messages').append($('<li>').text(msg));
+      socket.on('chat.userStatusChange', function(msg){
+        $('#messages').append($('<li>').text(msg.userId + ' ' + msg.msg));
       });
     </script>
   </body>

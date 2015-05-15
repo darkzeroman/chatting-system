@@ -64,11 +64,11 @@ sessionSockets.on('connection', function (err, socket, session) {
 
     subClient.on('message', function (channel, message) {
       if (channel.indexOf('messages.all') > -1) {
-        socket.emit('chat message', JSON.parse(message));
+        socket.emit('chat.message', JSON.parse(message));
       }
     });
 
-    socket.emit('chat message', {userId: userId, msg: 'logged in'});
+    socket.emit('chat.userStatusChange', {userId: userId, msg: 'logged in'});  
 });
 
 http.listen(3000, function(){
