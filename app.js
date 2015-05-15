@@ -71,6 +71,6 @@ sessionSockets.on('connection', function (err, socket, session) {
     socket.emit('chat.userStatusChange', {userId: userId, msg: 'logged in'});  
 });
 
-http.listen(3000, function(){
-  console.log('listening on *:3000');
+http.listen(process.env.PORT || 8888, function(){
+  console.log('listening on *:', process.env.PORT || 8888);
 });
