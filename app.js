@@ -48,14 +48,14 @@ pubClient.on('connect', function() {
 });
 
 app.get('/', function(req, res){
-    var vars = {1: 2};
+    var vars = {options: {1: http.address(), 2: serverIpAddress}};
     // res.sendFile(__dirname + '/index.html');
     // res.send('hi');
     res.send(jade.renderFile('./views/index.jade', vars));
 });
 
 app.get('/info', function(req, res){
-    res.send({1: http.address(), 2: serverIpAddress});
+    res.send();
 });
 
 app.post('/login', function (req, res) {
