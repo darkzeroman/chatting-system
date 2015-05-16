@@ -1,7 +1,7 @@
 // CONSTANTS
 var REDIS_PORT = 6379,
-    REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
-    // REDIS_HOSTNAME = "localhost",
+    // REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
+    REDIS_HOSTNAME = "localhost",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
@@ -11,7 +11,9 @@ var express = require('express'),
     io = require('socket.io')(http),
     redis = require('redis'),
     os = require('os'),
+    request = require('request'),
     async = require('async'),
+    jade = require('jade'),
     session = require('express-session'),
     RedisStore = require('connect-redis')(session),
     rClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME),
@@ -23,6 +25,14 @@ var express = require('express'),
 
 var subClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME); //creates a new client 
 var pubClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME); //creates a new client 
+
+var serverIpAddress;
+
+request('http://instance-data/latest/meta-data/public-ipv4', function (err, response, body) {
+   if (!err && response.statusCode == 200) {
+    serverIpAddress = body;
+  }
+});
 
 app.use(cookieParser);
 app.use(bodyParser.json());
@@ -38,11 +48,14 @@ pubClient.on('connect', function() {
 });
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+    var vars = {1: 2};
+    // res.sendFile(__dirname + '/index.html');
+    // res.send('hi');
+    res.send(jade.renderFile('./views/index.jade', vars));
 });
 
 app.get('/info', function(req, res){
-    res.send(http.address());
+    res.send({1: http.address(), 2: serverIpAddress});
 });
 
 app.post('/login', function (req, res) {
