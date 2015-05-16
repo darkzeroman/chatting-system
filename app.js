@@ -1,6 +1,6 @@
 // CONSTANTS
-var port = 6379,
-    hostname = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
+var REDIS_PORT = 6379,
+    REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
@@ -9,18 +9,18 @@ var express = require('express'),
     http = require('http').Server(app),
     io = require('socket.io')(http),
     redis = require('redis'),
+    os = require('os'),
     session = require('express-session'),
-    connectRedis = require('connect-redis'),
-    RedisStore = connectRedis(session),
-    rClient = redis.createClient(port, hostname),
+    RedisStore = require('connect-redis')(session),
+    rClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME),
     sessionStore = new RedisStore({client: rClient}),
     cookieParser = require('cookie-parser')(SECRET),
     bodyParser = require('body-parser'),
     SessionSockets = require('session.socket.io'),
     sessionSockets = new SessionSockets(io, sessionStore, cookieParser, COOKIE_NAME);
 
-var subClient = redis.createClient(port, hostname); //creates a new client 
-var pubClient = redis.createClient(port, hostname); //creates a new client 
+var subClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME); //creates a new client 
+var pubClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME); //creates a new client 
 
 app.use(cookieParser);
 app.use(bodyParser.json());
@@ -73,4 +73,5 @@ sessionSockets.on('connection', function (err, socket, session) {
 
 http.listen(process.env.PORT || 8888, function(){
   console.log('listening on *:', process.env.PORT || 8888);
+  console.log('server addr: ', http.address());
 });
