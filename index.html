@@ -20,6 +20,8 @@
     </form>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css" type="text/css" rel="stylesheet" />
     <script>
       $(document).ready(function() {
 
@@ -33,8 +35,10 @@
           socket.on('chat.message', function(msg){
             $('#messages').append($('<li>').text(msg.userId + ': ' + msg.msg));
           });
-          socket.on('chat.userStatusChange', function(msg){
-            $('#messages').append($('<li>').text(msg.userId + ' ' + msg.msg));
+          socket.on('chat.status', function(msg){
+            if (msg.status && msg.status === 'error') {
+              toastr.error(msg.msg);
+            }
           });
         }
 

@@ -1,6 +1,7 @@
 // CONSTANTS
 var REDIS_PORT = 6379,
     REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
+    // REDIS_HOSTNAME = "localhost",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
@@ -10,6 +11,7 @@ var express = require('express'),
     io = require('socket.io')(http),
     redis = require('redis'),
     os = require('os'),
+    async = require('async'),
     session = require('express-session'),
     RedisStore = require('connect-redis')(session),
     rClient = redis.createClient(REDIS_PORT, REDIS_HOSTNAME),
@@ -46,10 +48,16 @@ app.post('/login', function (req, res) {
     res.send(req.body);
 });
 
+subClient.on('message', function (channel, message) {
+    if (channel.indexOf('messages.all') > -1) {
+        io.emit('chat.message', JSON.parse(message));
+    }
+});
+
 sessionSockets.on('connection', function (err, socket, session) {
     //Close socket if userId is not logged in
     if (err || typeof session === 'undefined' || typeof session.userId === 'undefined') {
-        console.log(err);
+        console.log('err: ', err);
         console.log('user not logged in - closing socket');
         socket.disconnect();
         return;
@@ -59,17 +67,20 @@ sessionSockets.on('connection', function (err, socket, session) {
     var userId = session.userId;
 
     socket.on('user-to-server-message', function (msg) {
-      pubClient.publish('messages.all', JSON.stringify({userId: userId, msg: msg}));
+        sendMessage(userId, msg, socket);
     });
 
-    subClient.on('message', function (channel, message) {
-      if (channel.indexOf('messages.all') > -1) {
-        socket.emit('chat.message', JSON.parse(message));
-      }
-    });
-
-    socket.emit('chat.userStatusChange', {userId: userId, msg: 'logged in'});  
+    sendMessage(userId, 'logged in', socket);
 });
+
+function sendMessage(userId, msg, socket) {
+    if (!pubClient.connected || !subClient.connected) {
+        socket.emit('chat.status', {status: 'error', msg: 'Cannot send message'});
+        return;
+    }
+
+    pubClient.publish('messages.all', JSON.stringify({userId: userId, msg: msg}));
+}
 
 http.listen(process.env.PORT || 8888, function(){
   console.log('listening on *:', process.env.PORT || 8888);
