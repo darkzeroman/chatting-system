@@ -38,14 +38,13 @@
           });
         }
 
+        var userId = Math.round(Math.random()*100000000);      
+        $.post('/login', {userId: userId}, function (data, textStatus, jqXHR) {
+          console.log("user logged in from client side");
+          initClient();
+        });
       });
       
-      var userId = Math.round(Math.random()*100000000);      
-      $.post('/login', {userId: userId}, function (data, textStatus, jqXHR) {
-        console.log("user logged in from client side");
-        initClient();
-      });
-
     </script>
   </body>
 </html>
