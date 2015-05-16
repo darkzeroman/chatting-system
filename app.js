@@ -41,6 +41,10 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
+app.get('/info', function(req, res){
+    res.send(http.address());
+});
+
 app.post('/login', function (req, res) {
     //store user info in session after login.
     req.session.userId = req.body.userId;
