@@ -1,7 +1,7 @@
 // CONSTANTS
 var REDIS_PORT = 6379,
-    // REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
-    REDIS_HOSTNAME = "localhost",
+    REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
+    // REDIS_HOSTNAME = "localhost",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
