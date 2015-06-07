@@ -1,7 +1,7 @@
 // CONSTANTS
 var REDIS_PORT = 6379,
-    REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
-    // REDIS_HOSTNAME = "localhost",
+    // REDIS_HOSTNAME = "chat-redis-two.zqgwjh.0001.usw2.cache.amazonaws.com",
+    REDIS_HOSTNAME = "localhost",
     SECRET = 'node-express-redis-server',
     COOKIE_NAME = 'AWSELB';
 
@@ -48,21 +48,37 @@ pubClient.on('connect', function() {
 });
 
 app.get('/', function(req, res){
-    var vars = {options: {1: http.address(), 2: serverIpAddress}};
-    // res.sendFile(__dirname + '/index.html');
-    // res.send('hi');
+    var vars = {serverIpAddress: serverIpAddress};
     res.send(jade.renderFile('./views/index.jade', vars));
 });
 
-app.get('/info', function(req, res){
-    res.send();
-});
-
 app.post('/login', function (req, res) {
-    //store user info in session after login.
-    req.session.userId = req.body.userId;
-    console.log('user logging in: ', req.body);
-    res.send(req.body);
+    // Store user info in session after login.
+    var userId = req.body.userId;
+
+    pubClient.sismember('loggedInUsers', userId, function (err, reply) {
+        if (err) {
+            res.status(500).send('Gateway Error');
+            return;
+        }
+
+        if (reply === 1) {
+           res.status(400).send('Username Already Exists');
+           return; 
+        }
+
+        pubClient.sadd('loggedInUsers', userId, function (err, reply) {
+            if (err) {
+                res.status(500).send('Gateway Error');
+                return;
+            }
+
+            req.session.userId = req.body.userId;
+            res.send(req.body);
+
+        });
+    });
+
 });
 
 subClient.on('message', function (channel, message) {
@@ -72,19 +88,23 @@ subClient.on('message', function (channel, message) {
 });
 
 sessionSockets.on('connection', function (err, socket, session) {
-    //Close socket if userId is not logged in
+    // Close socket if userId is not logged in
     if (err || typeof session === 'undefined' || typeof session.userId === 'undefined') {
         console.log('err: ', err);
         console.log('user not logged in - closing socket');
         socket.disconnect();
         return;
-      }
+    }
 
-    //get info from session
+    // Get info from session
     var userId = session.userId;
 
     socket.on('user-to-server-message', function (msg) {
         sendMessage(userId, msg, socket);
+    });
+
+    socket.on('disconnect', function () {
+        pubClient.srem('loggedInUsers', userId);
     });
 
     sendMessage(userId, 'logged in', socket);
@@ -101,5 +121,4 @@ function sendMessage(userId, msg, socket) {
 
 http.listen(process.env.PORT || 8888, function(){
   console.log('listening on *:', process.env.PORT || 8888);
-  console.log('server addr: ', http.address());
 });

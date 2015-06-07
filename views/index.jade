@@ -14,8 +14,11 @@ html
     script(src="https://cdn.socket.io/socket.io-1.2.0.js")
     script(src="http://code.jquery.com/jquery-1.11.1.js")
     script(src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.js")
+    script(src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js")
     link(href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.1/toastr.min.css", type="text/css", rel="stylesheet")
+    link(href="https://code.jquery.com/ui/1.11.4/themes/humanity/jquery-ui.css", type="text/css", rel="stylesheet")
     script.
+      MYAPP = {};
       $(document).ready(function() {
         function initClient() {
           var socket = io();
@@ -34,11 +37,28 @@ html
           });
         }
 
-        var userId = Math.round(Math.random()*100000000);      
-        $.post('/login', {userId: userId}, function (data, textStatus, jqXHR) {
-          console.log("user logged in from client side");
-          initClient();
-        });
+        $('#login-form-dialog').dialog({
+            autoOpen: true,
+            height: 300,
+            width: 500,
+            modal: true,
+            buttons: [{
+              text: "OK",
+              click: function () {
+                var username = $('input', this).val();
+                var dialogThis = this;
+                $.post('/login', {userId: username}, function (data, textStatus, jqXHR) {
+                  MYAPP.userId = username;
+                  initClient();
+                  $(dialogThis).dialog('close');
+                }).done(function() {
+                  $('div.status', dialogThis).text();
+                }).fail(function (jqXHR) {
+                  $('div.status', dialogThis).text(jqXHR.responseText);
+                });
+              }
+            }]
+          });
       });
   body
     div #{JSON.stringify(options)}
@@ -46,3 +66,7 @@ html
     form
       input#m(autocomplete="off")
       button Send
+    #login-form-dialog(title="Login")
+      label(for="username") Username:
+      input(type="text", name="username")
+      div.status
